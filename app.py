@@ -14,9 +14,9 @@ app = FastAPI()
 
 
 @app.get("/peliculas_mes/{mes}")
-def peliculas_mes(mes):
+def peliculas_mes(mes: str):
     # Establecer el idioma a español
-    locale.setlocale(locale.LC_ALL, 'es_AR.utf8')
+    locale.setlocale(locale.LC_ALL, 'es_es')
     # Convertir la columna 'release_date' a tipo fecha y hora
     df['release_date'] = pd.to_datetime(df['release_date'])
     # Crear una columna auxiliar con el número de mes
