@@ -6,7 +6,7 @@ import calendar
 from datetime import datetime
 import pandas as pd
 
-df = pd.read_csv(//home//tomas/Desktop//PI_MLOPS_HENRY//archivo.csv') 
+df = pd.read_csv("archivo.csv")
 df = df.fillna(0)
 
 #Creo una instancia de fastapi
