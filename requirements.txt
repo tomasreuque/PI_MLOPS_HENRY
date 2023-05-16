@@ -1,6 +1,5 @@
 fastapi
 uvicorn
-locale
 numpy
 datetime
 pandas
