@@ -6,7 +6,7 @@ import calendar
 from datetime import datetime
 import pandas as pd
 
-df = pd.read_csv("archivo.csv")
+df = pd.read_csv('archivo.csv') 
 df = df.fillna(0)
 
 #Creo una instancia de fastapi
@@ -14,38 +14,61 @@ app = FastAPI()
 
 
 @app.get("/peliculas_mes/{mes}")
-def peliculas_mes(mes: str):
-    # Establecer el idioma a español
-    locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
-    # Convertir la columna 'release_date' a tipo fecha y hora
-    df['release_date'] = pd.to_datetime(df['release_date'])
-    # Crear una columna auxiliar con el número de mes
-    df['mes'] = df['release_date'].dt.month
-    # Obtener el número del mes en base al nombre en español
-    numero_mes = None
-    for i, nombre_mes in enumerate(calendar.month_name):
-        if nombre_mes.lower() == mes.lower():
-            numero_mes = i
-            break
-    if numero_mes is None or numero_mes == 0:
+def peliculas_mes(mes):
+    # Diccionario con los nombres de los meses en español y su correspondiente número
+    meses = {
+        'enero': 1,
+        'febrero': 2,
+        'marzo': 3,
+        'abril': 4,
+        'mayo': 5,
+        'junio': 6,
+        'julio': 7,
+        'agosto': 8,
+        'septiembre': 9,
+        'octubre': 10,
+        'noviembre': 11,
+        'diciembre': 12
+    }
+    # Verificar si el mes especificado es válido
+    numero_mes = meses.get(mes.lower())
+    if not numero_mes:
         return {'error': 'Mes inválido'}
+    # Convertir la columna 'release_date' a tipo fecha y hora (si aún no está convertida)
+    if not pd.api.types.is_datetime64_any_dtype(df['release_date']):
+        df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
     # Filtrar el DataFrame para obtener las películas que se estrenaron en el mes especificado
-    peliculas_mes = df[df['mes'] == numero_mes]
+    peliculas_mes = df[df['release_date'].dt.month == numero_mes]
     # Obtener la cantidad de películas
     cantidad = len(peliculas_mes)
+
     return {'mes': mes, 'cantidad': cantidad}
+
 
 @app.get("/peliculas_dia/{dia}")
 def peliculas_dia(dia):
-    # Establecer el idioma a español
-    locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
-    # Convertir la columna 'release_date' a tipo fecha y hora
-    df['release_date'] = pd.to_datetime(df['release_date'])
-    # Crear una columna auxiliar con el nombre del día en español
-    df['dia'] = df['release_date'].dt.strftime('%A').str.lower()
+    # Diccionario con los nombres de los días en español y su correspondiente nombre en inglés
+    dias = {
+        'lunes': 'Monday',
+        'martes': 'Tuesday',
+        'miércoles': 'Wednesday',
+        'jueves': 'Thursday',
+        'viernes': 'Friday',
+        'sábado': 'Saturday',
+        'domingo': 'Sunday'
+    }
+    # Verificar si el día especificado es válido
+    nombre_dia = dias.get(dia.lower())
+    if not nombre_dia:
+        return {'error': 'Día inválido'}
+    # Convertir la columna 'release_date' a tipo fecha y hora (si aún no está convertida)
+    if not pd.api.types.is_datetime64_any_dtype(df['release_date']):
+        df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
     # Obtener la cantidad de películas para el día especificado
-    cantidad = len(df[df['dia'] == dia.lower()])
+    cantidad = len(df[df['release_date'].dt.strftime('%A').str.lower() == nombre_dia.lower()])
+
     return {'dia': dia, 'cantidad': cantidad}
+
 
 @app.get("/franquicia/{nombre}")
 def franquicia(franquicia):
