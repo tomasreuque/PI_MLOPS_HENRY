@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 import uvicorn
-import ast
 import locale
 import numpy as np
 import calendar
@@ -70,15 +69,18 @@ def peliculas_dia(dia):
 
     return {'dia': dia, 'cantidad': cantidad}
 
-
-@app.get("/franquicia/{nombre}")
+@app.get("/franquicia/{franquicia}")
 def franquicia(franquicia):
     # Filtrar las películas de la franquicia y donde el budget y el revenue no sean cero
-    franquicia_df = df[(df['belongs_to_collection'] == franquicia) & (df['budget'] != 0) & (df['revenue'] != 0)]
+    franquicia_df = df[(df['belongs_to_collection'].notna()) & (df["belongs_to_collection"].str.contains(franquicia))]
+    # si no se encuentra la franquicia
+    if franquicia_df.empty:
+        return "No se encontro la franquicia solicitada"
+    
     # Calcular la cantidad de películas
-    cantidad = len(franquicia_df)
+    cantidad = franquicia_df.shape[0]
     # Calcular la ganancia total
-    ganancia_total = franquicia_df['revenue'].sum() - franquicia_df['budget'].sum()
+    ganancia_total = franquicia_df['revenue'].sum()
     # Calcular la ganancia promedio
     ganancia_promedio = ganancia_total / cantidad
     
@@ -98,8 +100,10 @@ def peliculas_pais(pais):
 def productoras(productora):
     # Filtrar las películas que contienen la productora especificada
     filtered_df = df[df['production_companies'].apply(lambda x: productora in ast.literal_eval(x))]
+
     # Calcular la ganancia total sumando los valores de 'revenue' para todas las películas filtradas
     ganancia_total = filtered_df['revenue'].sum()
+
     # Obtener la cantidad de películas que cumplen con los filtros
     cantidad = filtered_df.shape[0]
 
