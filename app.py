@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
+import ast
 import locale
 import numpy as np
 import calendar
@@ -95,9 +96,13 @@ def peliculas_pais(pais):
 
 @app.get("/productoras/{productora}")
 def productoras(productora):
-    filtered_df = df[(df['production_companies'].apply(lambda x: productora in x)) & (df['budget'] != 0) & (df['revenue'] != 0)]
+    # Filtrar las películas que contienen la productora especificada
+    filtered_df = df[df['production_companies'].apply(lambda x: productora in ast.literal_eval(x))]
+    # Calcular la ganancia total sumando los valores de 'revenue' para todas las películas filtradas
     ganancia_total = filtered_df['revenue'].sum()
+    # Obtener la cantidad de películas que cumplen con los filtros
     cantidad = filtered_df.shape[0]
+
     return {'productora': productora, 'ganancia_total': ganancia_total, 'cantidad': cantidad}
 
 @app.get("/retorno_pelicula/{pelicula}")
@@ -108,7 +113,6 @@ def retorno(pelicula):
     retorno = (ganancia - inversion) / inversion
     anio = selected_movie['release_year'].values[0].item()
     return {'pelicula': pelicula, 'inversion': inversion, 'ganancia': ganancia, 'retorno': retorno, 'anio': anio}
-
 
 #scpript para correr localmente el codigo
 #if __name__ == "__main__":
