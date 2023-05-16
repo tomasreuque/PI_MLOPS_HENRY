@@ -1,10 +1,9 @@
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer
 from fastapi import FastAPI
 import uvicorn
-import locale
 import numpy as np
-import calendar
 import ast
-from datetime import datetime
 import pandas as pd
 
 df = pd.read_csv('archivo.csv') 
@@ -118,6 +117,50 @@ def retorno(pelicula):
     retorno = (ganancia - inversion) / inversion
     anio = selected_movie['release_year'].values[0].item()
     return {'pelicula': pelicula, 'inversion': inversion, 'ganancia': ganancia, 'retorno': retorno, 'anio': anio}
+
+
+## Modelo de recomendacion basado en contenido
+# Cargar el DataFrame original desde el archivo CSV
+df = pd.read_csv("archivo.csv")
+
+# Obtener características relevantes de las películas
+features = df['overview'].fillna('')
+
+# Crear una matriz de características utilizando la representación Bag-of-Words
+vectorizer = CountVectorizer()
+feature_matrix = vectorizer.fit_transform(features)
+
+# Calcular la similitud del coseno entre las películas
+similarity_matrix = cosine_similarity(feature_matrix)
+
+# Definir la función de recomendación
+def recomendacion(titulo):
+    # Buscar el índice de la película con el título dado
+    movie_index = df[df['title'] == titulo].index[0]
+
+    # Obtener los puntajes de similitud para la película dada
+    movie_scores = similarity_matrix[movie_index]
+
+    # Obtener los índices de las películas similares en orden descendente
+    similar_movies_indices = movie_scores.argsort()[::-1]
+
+    # Obtener los títulos y valores de voto de las películas similares
+    similar_movies_data = df.iloc[similar_movies_indices[:5]][['title', 'vote_average']]
+
+    # Ordenar las películas por voto en orden descendente
+    similar_movies_data = similar_movies_data.sort_values(by='vote_average', ascending=False)
+
+    # Obtener los títulos de las películas recomendadas en una lista
+    similar_movies_titles = similar_movies_data['title'].tolist()
+
+    # Devolver el resultado como un diccionario
+    return {'lista_recomendada': similar_movies_titles}
+
+# Ruta para la recomendación de películas
+@app.get("/recomendacion/{titulo}")
+def get_recomendacion(titulo: str):
+    return recomendacion(titulo)
+
 
 #scpript para correr localmente el codigo
 #if __name__ == "__main__":
