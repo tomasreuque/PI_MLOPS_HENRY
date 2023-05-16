@@ -3,5 +3,3 @@ uvicorn
 numpy
 datetime
 pandas
-locale
-calendar
