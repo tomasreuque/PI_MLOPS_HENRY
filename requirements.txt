@@ -3,3 +3,4 @@ uvicorn
 numpy
 datetime
 pandas
+scikit-learn
